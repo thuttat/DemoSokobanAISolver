@@ -56,12 +56,12 @@ You can use the menu to choose maps and algorithms.
 
 ## 👨‍💻 Author
 - **Name:**
-Trịnh Thị Anh Thư
-Lê Hoàng Bảo Trân
-Nguyễn Triệu Duy
+- Trịnh Thị Anh Thư
+- Lê Hoàng Bảo Trân
+- Nguyễn Triệu Duy
 - **GitHub:**
-https://github.com/thuttat
-https://github.com/TranLe05
-https://github.com/duynguyenntd
+- https://github.com/thuttat
+- https://github.com/TranLe05
+- https://github.com/duynguyenntd
 
 
