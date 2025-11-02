@@ -1,175 +1,187 @@
-import pygame as pg
-import sys
-from pytmx.util_pygame import load_pygame
+import csv
+import multiprocessing
+import time
+import pygame
+import os
 
-RES = WIDTH, HEIGHT = 320,320
+from menu import menu_loop
+from sokoban import Sokoban
 
-
-
-class Tile(pg.sprite.Sprite):
-    def __init__(self, image, pos, *groups):
-        super().__init__(*groups)
-        self.image = pg.transform.scale(image, (32, 32))
-        self.rect = self.image.get_rect(topleft=pos)
-
-
-class Player(pg.sprite.Sprite):
-    def __init__(self, image, pos):
-        super().__init__()
-        self.image = pg.transform.scale(image, (32, 32))
-        self.rect = self.image.get_rect(topleft=pos)
-
-class Box(pg.sprite.Sprite):
-    def __init__(self, image, pos):
-        super().__init__()
-        self.image = pg.transform.scale(image, (32, 32))
-        self.rect = self.image.get_rect(topleft=pos)
+try:
+    from algorithms.bfs import BFS
+except Exception:
+    BFS = None
+try:
+    from algorithms.dfs import DFS
+except Exception:
+    DFS = None
+try:
+    from algorithms.astar import AStar
+except Exception:
+    AStar = None
 
 
+def show_text(screen, text, size=40):
+    screen.fill((30, 30, 30))
+    font = pygame.font.Font(None, size)
+    surf = font.render(text, True, (255, 255, 255))
+    screen.blit(surf, (screen.get_width()//2 - surf.get_width()//2,
+                       screen.get_height()//2 - surf.get_height()//2))
+    pygame.display.flip()
 
 
-class App:
-    def __init__(self):
-        pg.init()
-        self.surface = pg.display.set_mode(RES)
-        pg.display.set_caption("Map Example")
-        self.clock = pg.time.Clock()
-        self.delta_time = 0
-        self.map_data = load_pygame("maps/level_01.tmx")
-        self.sprite_group = pg.sprite.Group()
-        self.walls = pg.sprite.Group()
+def run_solver_func(map_path, algo_name, result_queue):
+    try:
+        from sokoban import Sokoban
+        from algorithms.bfs import BFS
+        from algorithms.dfs import DFS
+        from algorithms.astar import AStar
 
-        self.checkpoints = pg.sprite.Group()
+        game = Sokoban(map_path, assets_dir="assets")
+        start = game.get_start_state()
 
-        for layer in self.map_data.visible_layers:
-            if hasattr(layer, 'tiles'):
-                for x, y, surf in layer.tiles():
-                    pos = (x * 32, y * 32)
-                    tile = Tile(surf, pos)
-                    self.sprite_group.add(tile)
+        solver = None
+        if algo_name.upper().startswith("BFS"):
+            solver = BFS(game) if BFS is not None else None
+        elif algo_name.upper().startswith("DFS"):
+            solver = DFS(game) if DFS is not None else None
+        elif algo_name.upper().startswith("A"):
+            solver = AStar(game) if AStar is not None else None
 
-                    if layer.name == 'Checkpoint':
-                        self.checkpoints.add(tile)
-
-
-        for layer in self.map_data.visible_layers:
-            print(f"LoadingLoading layer: {layer.name}")
-            if hasattr(layer, 'tiles'):
-                for x, y, surf in layer.tiles():
-                    print(f"Tile at ({x}, {y}) has surface = {type(surf)}")
-                    if isinstance(surf, pg.Surface):  
-                        pos = (x * 32, y * 32)
-                        if layer.name == 'Wall':
-                            Tile(surf, pos, self.sprite_group, self.walls)
-                        else:
-                            Tile(surf, pos, self.sprite_group)
-
-
-        print("TotalTotal:", len(self.sprite_group))
-
-   
-     
-        self.player_img = pg.image.load("assets/charactor.png").convert_alpha()
-        self.player = None
-
-   
-        for layer in self.map_data.layers:
-            if layer.name == 'Player':
-                for obj in layer:
-                    print("Found object:", obj.name, obj.x, obj.y)
-                    if obj.name == "Player":
-                        px = int(obj.x)
-                        py = int(obj.y - self.map_data.tileheight)
-                        print("Loaded player at:", px, py)
-                        self.player = Player(self.player_img, (px, py))
-
-        self.box_img = pg.image.load("assets/box.png").convert_alpha()
-        self.boxes = pg.sprite.Group()
-
-        for layer in self.map_data.layers:
-            if layer.name == 'Box':
-                for obj in layer:
-                    x, y = int(obj.x), int(obj.y - self.map_data.tileheight)
-                    self.boxes.add(Tile(self.box_img, (x, y)))
-
-
-
-
-
-
-
-
-    def draw(self):
-        self.sprite_group.draw(self.surface)
-        self.boxes.draw(self.surface)
-        if self.player:
-            self.surface.blit(self.player.image, self.player.rect)
-
-
-
-
-
-    def run(self):
-        while True:
-            for e in pg.event.get():
-                keys = pg.key.get_pressed()
-                dx, dy = 0, 0
-                if e.type == pg.KEYDOWN:
-                    if e.key == pg.K_UP: self.move(0, -32)
-                    elif e.key == pg.K_DOWN: self.move(0, 32)
-                    elif e.key == pg.K_LEFT: self.move(-32, 0)
-                    elif e.key == pg.K_RIGHT: self.move(32, 0)
-
-                if dx != 0 or dy != 0:
-                    new_rect = self.player.rect.move(dx, dy)
-                    if not any(new_rect.colliderect(w.rect) for w in self.walls):
-                        self.player.rect = new_rect
-                    pg.time.wait(150)  
-
-                if e.type == pg.QUIT:
-                    pg.quit()
-                    sys.exit()
-
-            self.surface.fill((0, 0, 0))  
-            self.draw()
-
-            self.delta_time = self.clock.tick()
-            pg.display.set_caption("Map Example: " + str(round(self.clock.get_fps())))
-            pg.display.flip()
-
-    def move(self, dx, dy):
-        next_rect = self.player.rect.move(dx, dy)
-
-        # Va chạm với tường
-        if any(next_rect.colliderect(w.rect) for w in self.walls):
+        if solver is None:
+            result_queue.put((None, 0))
             return
 
-        # Va chạm với box
-        for box in self.boxes:
-            if next_rect.colliderect(box.rect):
-                box_next = box.rect.move(dx, dy)
+        if hasattr(solver, "solve"):
+            result = solver.solve(start)
+        elif callable(solver):
+            result = solver(game, start)
+        else:
+            result = None
 
-                if any(box_next.colliderect(w.rect) for w in self.walls) or \
-                any(box_next.colliderect(b.rect) for b in self.boxes if b != box):
-                    return
+        expanded = getattr(solver, "expanded", 0)
+        # gửi tuple về tiến trình chính
+        result_queue.put((result, expanded))
 
-                box.rect = box_next
-                break
-
-        self.player.rect = next_rect
-
-        if self.check_win():
-            print("YOU WIN!")
-
-
-
-    def check_win(self):
-        for checkpoint in self.checkpoints:
-            if not any(box.rect.colliderect(checkpoint.rect) for box in self.boxes):
-                return False
-        return True
+    except Exception as e:
+        print("Error in solver process:", e)
+        try:
+            result_queue.put((None, 0))
+        except Exception:
+            pass
 
 
-if __name__ == '__main__':
-    app = App()
-    app.run()
+def main():
+    pygame.init()
+    screen = pygame.display.set_mode((800, 650))
+    pygame.display.set_caption("SOKOBAN")
+
+    
+    level_file, algo_name = menu_loop(screen)
+    if not level_file:
+        print("No level selected.")
+        return
+
+    
+    if os.path.isabs(level_file) or level_file.startswith("maps"):
+        map_path = level_file if os.path.exists(level_file) else os.path.join("maps", level_file)
+    else:
+        map_path = os.path.join("maps", level_file)
+
+    if not os.path.exists(map_path):
+        print("Map file not found:", map_path)
+        return
+
+    
+    game = Sokoban(map_path, assets_dir="assets")
+
+    show_text(screen, "WAITING...", size=48)
+    pygame.event.pump()
+
+    
+    solver_stub = None
+    if algo_name.upper().startswith("BFS") and BFS is not None:
+        solver_stub = BFS(game)
+    elif algo_name.upper().startswith("DFS") and DFS is not None:
+        solver_stub = DFS(game)
+    elif (algo_name.upper().startswith("A") or algo_name.upper().startswith("ASTAR")) and AStar is not None:
+        solver_stub = AStar(game)
+    else:
+        try:
+            mod = __import__("algorithms.bfs", fromlist=["bfs"])
+            if hasattr(mod, "bfs"):
+                solver_stub = lambda g: mod.bfs(g, game.get_start_state())
+        except:
+            pass
+
+    if solver_stub is None:
+        print("Không tìm thấy solver phù hợp. Kiểm tra thư mục algorithms/ và tên class.")
+        return
+
+    
+    start_time = time.time()
+    result_queue = multiprocessing.Queue()
+    p = multiprocessing.Process(
+        target=run_solver_func,
+        args=(map_path, algo_name, result_queue)
+    )
+    p.start()
+    p.join(timeout=900)  
+
+    end_time = time.time()
+    time_sec = round(end_time - start_time, 4)
+
+    
+    if p.is_alive():
+        p.terminate()
+        print("Timeout 15 minutes. Stop game.")
+        show_text(screen, "Timeout 15 minutes. Stop game.", size=36)
+        while True:
+            for e in pygame.event.get():
+                if e.type == pygame.QUIT:
+                    pygame.quit()
+                    exit()
+            pygame.time.Clock().tick(30)
+        return
+
+    
+    if not result_queue.empty():
+        data = result_queue.get()
+    else:
+        data = (None, 0)
+
+    if isinstance(data, tuple) and len(data) == 2:
+        solution, expanded_states = data
+    else:
+        solution, expanded_states = data, 0
+
+    if solution is None:
+        print("No solution.")
+        success = 0
+        solution_length = 0
+    else:
+        success = 1
+        solution_length = len(solution)
+
+    
+    csv_file = "experiment_results.csv"
+    write_header = not os.path.exists(csv_file)
+    with open(csv_file, "a", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        if write_header:
+            writer.writerow(["map_name", "algo_name", "time_sec",
+                             "solution_length", "expanded_states", "success"])
+        writer.writerow([map_path, algo_name, time_sec,
+                         solution_length, expanded_states, success])
+
+    print("Result:", map_path, algo_name, "| Time:", time_sec,
+          "| Steps:", solution_length, "| Expanded:", expanded_states,
+          "|", "Success" if success else "Unsuccess")
+
+    
+    if solution:
+        game.animate_solution(screen, solution, delay_ms=300)
+
+
+if __name__ == "__main__":
+    main()

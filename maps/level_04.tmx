@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="10" height="10" tilewidth="32" tileheight="32" infinite="0" nextlayerid="6" nextobjectid="6">
+ <tileset firstgid="1" source="grass.tsx"/>
+ <tileset firstgid="7" source="wall.tsx"/>
+ <tileset firstgid="8" source="charactor.tsx"/>
+ <tileset firstgid="9" source="box.tsx"/>
+ <tileset firstgid="10" source="star.tsx"/>
+ <layer id="1" name="Floor" width="10" height="10">
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,0,0,
+0,1,1,0,1,1,1,1,1,0,
+0,1,1,0,1,1,1,1,1,0,
+0,1,1,0,1,0,0,0,1,0,
+0,1,1,1,1,1,1,0,1,0,
+0,1,1,0,1,0,1,1,1,0,
+0,0,0,0,1,0,0,1,1,0,
+0,1,1,1,1,1,1,1,1,0,
+0,1,1,1,1,0,1,1,1,0,
+0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+ <layer id="2" name="Wall" width="10" height="10">
+  <data encoding="csv">
+7,7,7,7,7,7,7,7,7,7,
+7,0,0,7,0,0,0,0,0,7,
+7,0,0,7,0,0,0,0,0,7,
+7,0,0,7,0,7,7,7,0,7,
+7,0,0,0,0,0,0,7,0,7,
+7,0,0,7,0,7,0,0,0,7,
+7,7,7,7,0,7,7,0,0,7,
+7,0,0,0,0,0,0,0,0,7,
+7,0,0,0,0,7,0,0,0,7,
+7,7,7,7,7,7,7,7,7,7
+</data>
+ </layer>
+ <objectgroup id="3" name="Player">
+  <object id="1" name="Player" gid="8" x="160" y="192" width="32" height="32"/>
+ </objectgroup>
+ <objectgroup id="4" name="Box">
+  <object id="2" name="Box" gid="9" x="160" y="128" width="32" height="32"/>
+  <object id="3" name="Box" gid="9" x="64" y="288" width="32" height="32"/>
+  <object id="4" name="Box" gid="9" x="160" y="288" width="32" height="32"/>
+  <object id="5" name="Box" gid="9" x="224" y="256" width="32" height="32"/>
+ </objectgroup>
+ <layer id="5" name="Checkpoint" width="10" height="10">
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,0,0,
+0,10,0,0,0,0,0,0,0,0,
+0,10,0,0,0,0,0,0,0,0,
+0,10,0,0,0,0,0,0,0,0,
+0,10,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+</map>
