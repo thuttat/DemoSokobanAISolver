@@ -4,7 +4,7 @@
 Hi~ 
 **Sokoban AI** is a project that my friends and I did for the AI subject at the University. This project simulates the classic **Sokoban puzzle game**, where the player (or an AI agent) pushes boxes onto target locations inside a maze.  
 The goal of this project is to develop an **AI-based solver** that can automatically find the optimal solution using various search algorithms.
-Our goal when doing this is to compare the algorithms of Path-finding.
+Our goal when doing this one is to compare the algorithms of Path-finding.
 
 ---
 
@@ -50,7 +50,7 @@ You can use the menu to choose maps and algorithms.
 - Sokoban game simulation  
 - Multiple AI search algorithms (BFS, DFS, UCS, A*)  
 - Experiment logging and result comparison  
-- Map conversion tool (`txt_to_tmx.py`)  
+- Map conversion tool (`txt_to_tmx.py`)  #Honestly, at first, we created maps using Tiled. However, using the available datasets on GitHub is simpler, so we created this file to leverage them. If you don't use them, please ignore this file.
 
 ---
 
